@@ -19,7 +19,8 @@ jobs:
         run: |
           echo "update_version=$(date -d '+8 hours' +%Y-%m-%d)" >> ${GITHUB_ENV}
           echo "domains_download_url=https://raw.githubusercontent.com/DustinWin/domain-list-custom/domains" >> ${GITHUB_ENV}
-          echo "ips_download_url=https://raw.githubusercontent.com/DustinWin/geoip/ips" >> ${GITHUB_ENV}          
+          echo "ips_download_url=https://raw.githubusercontent.com/DustinWin/geoip/ips" >> ${GITHUB_ENV}      
+          ehco "add_download_url=https://raw.githubusercontent.com/lateautumn2/ruleset_geodata/master/template" >> ${GITHUB_ENV}
         shell: bash
 
       - name: Clone Repository
@@ -109,14 +110,16 @@ jobs:
       - name: Generate `clash` rule-set
         run: |
           mkdir -p ./clash-ruleset/ ./sing-box-ruleset/
+          curl -o data.txt https://raw.githubusercontent.com/lateautumn2/ruleset_geodata/master/addList
+          readarray -t lines < data.txt
           domains=(ads private microsoft-cn apple-cn google-cn games-cn ai netflix disney max primevideo appletv youtube tiktok bilibili proxy cn)
           archs=(fakeip-filter applications networktest)
           ips=(netflixip telegramip privateip cnip)
-
+  
           # Generate `clash` rule-set (yaml)
           for ((i = 0; i < 17; i++)); do
             echo 'payload:' > "./clash-ruleset/${domains[i]}.yaml"
-            curl -sSL "${domains_download_url}/${domains[i]}.list" | sed 's/^/  - /' >> "./clash-ruleset/${domains[i]}.yaml"
+            curl -sSL "${domains_download_url}/${domains[i]}.list" | grep -e 'DOMAIN' | sed 's/^/  - /' >> "./clash-ruleset/${domains[i]}.yaml"
           done
 
           for ((i = 0; i < 3; i++)); do
@@ -126,12 +129,17 @@ jobs:
 
           for ((i = 0; i < 4; i++)); do
             echo 'payload:' > "./clash-ruleset/${ips[i]}.yaml"
-            curl -sSL "${ips_download_url}/${ips[i]}.list" | sed 's/^/  - /' >> "./clash-ruleset/${ips[i]}.yaml"
+            curl -sSL "${ips_download_url}/${ips[i]}.list" | grep -e 'IP' | sed 's/^/  - /' >> "./clash-ruleset/${ips[i]}.yaml"
+          done
+
+          for ((i = 0; i < ${lines.length}; i++)); do
+            echo 'payload:' > "./clash-ruleset/${lines[i]}.yaml"
+            curl -sSL "${add_download_url}/${lines[i]}.list" | sed 's/^/  - /' >> "./clash-ruleset/${lines[i]}.yaml"
           done
 
           # Generate `clash` rule-set (text)
           for ((i = 0; i < 17; i++)); do
-            curl -sSL "${domains_download_url}/${domains[i]}.list"  > "./clash-ruleset/${domains[i]}.list"
+            curl -sSL "${domains_download_url}/${domains[i]}.list" | grep -e 'DOMAIN'  > "./clash-ruleset/${domains[i]}.list"
           done
 
           for ((i = 0; i < 3; i++)); do
@@ -139,7 +147,11 @@ jobs:
           done
 
           for ((i = 0; i < 4; i++)); do
-            curl -sSL "${ips_download_url}/${ips[i]}.list" > "./clash-ruleset/${ips[i]}.list"
+            curl -sSL "${ips_download_url}/${ips[i]}.list" | grep -e 'IP' > "./clash-ruleset/${ips[i]}.list"
+          done
+
+          for ((i = 0; i < ${lines.length}; i++)); do
+            curl -sSL "${add_download_url}/${lines[i]}.list" > "./clash-ruleset/${lines[i]}.list"
           done
 
           # Ready for generate `sing-box` rule_set
@@ -156,6 +168,11 @@ jobs:
           for ((i = 0; i < 4; i++)); do
             mkdir -p "./tools/rules/${ips[i]}/"
             curl -sSL "${ips_download_url}/${ips[i]}.list"| grep 'IP-CIDR' > "./tools/rules/${ips[i]}/${ips[i]}.yaml"
+          done
+
+          for ((i = 0; i < ${lines.length}; i++)); do
+            mkdir -p "./tools/rules/${lines[i]}/"
+            curl -sSL "${add_download_url}/${lines[i]}.list" > "./tools/rules/${lines[i]}/${lines[i]}.yaml"
           done
 
       - name: Download and unzip `sing-box core`
