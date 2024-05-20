@@ -132,7 +132,7 @@ jobs:
             curl -sSL "${ips_download_url}/${ips[i]}.list" | grep -e 'IP' | sed 's/^/  - /' >> "./clash-ruleset/${ips[i]}.yaml"
           done
 
-          for ((i = 0; i < ${lines.length}; i++)); do
+          for ((i = 0; i < ${#lines[@]}; i++)); do
             echo 'payload:' > "./clash-ruleset/${lines[i]}.yaml"
             curl -sSL "${add_download_url}/${lines[i]}.list" | sed 's/^/  - /' >> "./clash-ruleset/${lines[i]}.yaml"
           done
@@ -150,7 +150,7 @@ jobs:
             curl -sSL "${ips_download_url}/${ips[i]}.list" | grep -e 'IP' > "./clash-ruleset/${ips[i]}.list"
           done
 
-          for ((i = 0; i < ${lines.length}; i++)); do
+          for ((i = 0; i < ${#lines[@]}; i++)); do
             curl -sSL "${add_download_url}/${lines[i]}.list" > "./clash-ruleset/${lines[i]}.list"
           done
 
@@ -170,7 +170,7 @@ jobs:
             curl -sSL "${ips_download_url}/${ips[i]}.list"| grep 'IP-CIDR' > "./tools/rules/${ips[i]}/${ips[i]}.yaml"
           done
 
-          for ((i = 0; i < ${lines.length}; i++)); do
+          for ((i = 0; i < ${#lines[@]}; i++)); do
             mkdir -p "./tools/rules/${lines[i]}/"
             curl -sSL "${add_download_url}/${lines[i]}.list" > "./tools/rules/${lines[i]}/${lines[i]}.yaml"
           done
