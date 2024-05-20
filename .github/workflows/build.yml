@@ -116,7 +116,7 @@ jobs:
           # Generate `clash` rule-set (yaml)
           for ((i = 0; i < 17; i++)); do
             echo 'payload:' > "./clash-ruleset/${domains[i]}.yaml"
-            curl -sSL "${domains_download_url}/${domains[i]}.list" | grep -E 'DOMAIN,|DOMAIN-SUFFIX,' | sed -e "s/^DOMAIN,/  - '/" -e "s/^DOMAIN-SUFFIX,/  - '+\./" -e "s/$/'/" >> "./clash-ruleset/${domains[i]}.yaml"
+            curl -sSL "${domains_download_url}/${domains[i]}.list" | sed 's/^/  - /' >> "./clash-ruleset/${domains[i]}.yaml"
           done
 
           for ((i = 0; i < 3; i++)); do
@@ -126,12 +126,12 @@ jobs:
 
           for ((i = 0; i < 4; i++)); do
             echo 'payload:' > "./clash-ruleset/${ips[i]}.yaml"
-            curl -sSL "${ips_download_url}/${ips[i]}.list" | grep 'IP-CIDR' | sed -e "s/^IP-CIDR,/  - '/" -e "s/^IP-CIDR6,/  - '/" -e "s/$/'/" >> "./clash-ruleset/${ips[i]}.yaml"
+            curl -sSL "${ips_download_url}/${ips[i]}.list" | sed 's/^/  - /' >> "./clash-ruleset/${ips[i]}.yaml"
           done
 
           # Generate `clash` rule-set (text)
           for ((i = 0; i < 17; i++)); do
-            curl -sSL "${domains_download_url}/${domains[i]}.list" | grep -E 'DOMAIN,|DOMAIN-SUFFIX,' | sed -e 's/^DOMAIN,//' -e 's/^DOMAIN-SUFFIX,/+\./' > "./clash-ruleset/${domains[i]}.list"
+            curl -sSL "${domains_download_url}/${domains[i]}.list"  > "./clash-ruleset/${domains[i]}.list"
           done
 
           for ((i = 0; i < 3; i++)); do
@@ -139,7 +139,7 @@ jobs:
           done
 
           for ((i = 0; i < 4; i++)); do
-            curl -sSL "${ips_download_url}/${ips[i]}.list" | grep 'IP-CIDR' | sed -e 's/^IP-CIDR,//' -e 's/^IP-CIDR6,//' > "./clash-ruleset/${ips[i]}.list"
+            curl -sSL "${ips_download_url}/${ips[i]}.list" > "./clash-ruleset/${ips[i]}.list"
           done
 
           # Ready for generate `sing-box` rule_set
