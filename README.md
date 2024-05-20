@@ -1,3 +1,9 @@
+**写在前面：**
+
+  1. 此fork版在 DustinWin 的版本基础上修改了clash_ruleset的规则方式，丢弃了clash通配符方式，使用classical方式，兼容更多软件的引用。
+  2. 如果你有新的规则，请在addList中添加你想要添加的规则名字，并在template中新增你的规则文件，请注意格式（可见emby示例），配置完成后会自动生成文件。
+
+---
 **特别说明：sing-box rule_set 规则集适配了 v1.9.0+ 版本内核新增的 `domain_suffix` 特性：`"domain_suffix": "baidu.com"`（可匹配 `baidu.com` 和 `baike.baidu.com`），与 mihomo 内核一致了。原特性仅有 `"domain_suffix": ".baidu.com"`（仅匹配 `baike.baidu.com` 而无法匹配 `baidu.com`），详见：[domain_suffix 不完整匹配二级域名](https://github.com/SagerNet/sing-box/issues/1189)。如需使用本规则集，请尽快升级内核！**
 ---
 # 一、 geodata 规则集文件说明
