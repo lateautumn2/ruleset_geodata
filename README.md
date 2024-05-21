@@ -1,7 +1,249 @@
 **写在前面：**
 
   1. 此fork版在 DustinWin 的版本基础上修改了clash_ruleset的规则方式，丢弃了clash通配符方式，使用classical方式，兼容更多软件的引用。
-  2. 如果你有新的规则，请在addList中添加你想要添加的规则名字，并在template中新增你的规则文件，请注意格式（可见emby示例），配置完成后会自动生成文件。
+  2. 如果你有新的规则，请在addList中添加你想要添加的规则名字，并在template中新增你的规则文件，请注意格式（可见emby示例），配置完成后等待action完成后会自动生成文件。
+
+~~**请注意！如果你想使用本仓库fork的clash_ruleset list,但又是一键复制（DustinWin）的模板文件，请将behavior类型从domian修改为classical，并将url换成本仓库clash_ruleset分支的url**~~
+### ① Clash 内核(已修改)
+- 注：以下只是节选，请酌情套用
+
+```
+proxy-groups:
+  - {name: 🚀 节点选择, type: select, proxies: [🇭🇰 香港节点, 🇹🇼 台湾节点, 🇯🇵 日本节点, 🇰🇷 韩国节点, 🇸🇬 新加坡节点, 🇺🇸 美国节点]}
+  - {name: 🐟 漏网之鱼, type: select, proxies: [🚀 节点选择, 🎯 全球直连]}
+  - {name: 📈 网络测试, type: select, proxies: [🎯 全球直连, 🇭🇰 香港节点, 🇹🇼 台湾节点, 🇯🇵 日本节点, 🇰🇷 韩国节点, 🇸🇬 新加坡节点, 🇺🇸 美国节点]}
+  - {name: 🤖 人工智能, type: select, proxies: [🚀 节点选择, 🇭🇰 香港节点, 🇯🇵 日本节点, 🇸🇬 新加坡节点, 🇺🇸 美国节点]}
+  - {name: 🎮 游戏服务, type: select, proxies: [🎯 全球直连, 🚀 节点选择]}
+  - {name: Ⓜ️ 微软服务, type: select, proxies: [🎯 全球直连, 🚀 节点选择]}
+  - {name: 🇬 谷歌服务, type: select, proxies: [🎯 全球直连, 🚀 节点选择]}
+  - {name: 🍎 苹果服务, type: select, proxies: [🎯 全球直连, 🚀 节点选择]}
+  - {name: 🎥 奈飞视频, type: select, proxies: [🚀 节点选择, 🇭🇰 香港节点, 🇯🇵 日本节点, 🇸🇬 新加坡节点]}
+  - {name: 📽️ 迪士尼+, type: select, proxies: [🚀 节点选择, 🇭🇰 香港节点, 🇯🇵 日本节点, 🇸🇬 新加坡节点]}
+  - {name: 🎞️ Max, type: select, proxies: [🚀 节点选择, 🇭🇰 香港节点, 🇯🇵 日本节点, 🇸🇬 新加坡节点]}
+  - {name: 🎬 Prime Video, type: select, proxies: [🚀 节点选择, 🇭🇰 香港节点, 🇯🇵 日本节点, 🇸🇬 新加坡节点]}
+  - {name: 🍎 Apple TV+, type: select, proxies: [🚀 节点选择, 🇭🇰 香港节点, 🇯🇵 日本节点, 🇸🇬 新加坡节点]}
+  - {name: 📹 油管视频, type: select, proxies: [🚀 节点选择, 🇭🇰 香港节点, 🇯🇵 日本节点, 🇸🇬 新加坡节点]}
+  - {name: 🎵 TikTok, type: select, proxies: [🚀 节点选择, 🇭🇰 香港节点, 🇯🇵 日本节点, 🇸🇬 新加坡节点]}
+  - {name: 📺 哔哩哔哩, type: select, proxies: [🎯 全球直连, 🚀 节点选择, 🇭🇰 香港节点, 🇯🇵 日本节点, 🇸🇬 新加坡节点]}
+  - {name: 🇨🇳 直连域名, type: select, proxies: [🎯 全球直连, 🚀 节点选择]}
+  - {name: 🇨🇳 直连 IP, type: select, proxies: [🎯 全球直连, 🚀 节点选择]}
+  - {name: 🪜 代理域名, type: select, proxies: [🚀 节点选择, 🎯 全球直连]}
+  - {name: 📲 电报消息, type: select, proxies: [🚀 节点选择]}
+  - {name: 🖥️ 直连软件, type: select, proxies: [🎯 全球直连]}
+  - {name: 🔒 私有网络, type: select, proxies: [🎯 全球直连]}
+  - {name: 🛑 广告拦截, type: select, proxies: [REJECT]}
+  - {name: 🎯 全球直连, type: select, proxies: [DIRECT]}
+
+rule-providers:
+  ads:
+    type: http
+    behavior: classical
+    format: text
+    path: ./rules/ads.list
+    url: "https://raw.githubusercontent.com/lateautumn2/ruleset_geodata/clash-ruleset/ads.list"
+    interval: 86400
+
+  applications:
+    type: http
+    behavior: classical
+    format: text
+    path: ./rules/applications.list
+    url: "https://raw.githubusercontent.com/lateautumn2/ruleset_geodata/clash-ruleset/applications.list"
+    interval: 86400
+
+  private:
+    type: http
+    behavior: classical
+    format: text
+    path: ./rules/private.list
+    url: "https://raw.githubusercontent.com/lateautumn2/ruleset_geodata/clash-ruleset/private.list"
+    interval: 86400
+
+  microsoft-cn:
+    type: http
+    behavior: classical
+    format: text
+    path: ./rules/microsoft-cn.list
+    url: "https://raw.githubusercontent.com/lateautumn2/ruleset_geodata/clash-ruleset/microsoft-cn.list"
+    interval: 86400
+
+  apple-cn:
+    type: http
+    behavior: classical
+    format: text
+    path: ./rules/apple-cn.list
+    url: "https://raw.githubusercontent.com/lateautumn2/ruleset_geodata/clash-ruleset/apple-cn.list"
+    interval: 86400
+
+  google-cn:
+    type: http
+    behavior: classical
+    format: text
+    path: ./rules/google-cn.list
+    url: "https://raw.githubusercontent.com/lateautumn2/ruleset_geodata/clash-ruleset/google-cn.list"
+    interval: 86400
+
+  games-cn:
+    type: http
+    behavior: classical
+    format: text
+    path: ./rules/games-cn.list
+    url: "https://raw.githubusercontent.com/lateautumn2/ruleset_geodata/clash-ruleset/games-cn.list"
+    interval: 86400
+
+  netflix:
+    type: http
+    behavior: classical
+    format: text
+    path: ./rules/netflix.list
+    url: "https://raw.githubusercontent.com/lateautumn2/ruleset_geodata/clash-ruleset/netflix.list"
+    interval: 86400
+
+  disney:
+    type: http
+    behavior: classical
+    format: text
+    path: ./rules/disney.list
+    url: "https://raw.githubusercontent.com/lateautumn2/ruleset_geodata/clash-ruleset/disney.list"
+    interval: 86400
+
+  max:
+    type: http
+    behavior: classical
+    format: text
+    path: ./rules/max.list
+    url: "https://raw.githubusercontent.com/lateautumn2/ruleset_geodata/clash-ruleset/max.list"
+    interval: 86400
+
+  primevideo:
+    type: http
+    behavior: classical
+    format: text
+    path: ./rules/primevideo.list
+    url: "https://raw.githubusercontent.com/lateautumn2/ruleset_geodata/clash-ruleset/primevideo.list"
+    interval: 86400
+
+  appletv:
+    type: http
+    behavior: classical
+    format: text
+    path: ./rules/appletv.list
+    url: "https://raw.githubusercontent.com/lateautumn2/ruleset_geodata/clash-ruleset/appletv.list"
+    interval: 86400
+
+  youtube:
+    type: http
+    behavior: classical
+    format: text
+    path: ./rules/youtube.list
+    url: "https://raw.githubusercontent.com/lateautumn2/ruleset_geodata/clash-ruleset/youtube.list"
+    interval: 86400
+
+  tiktok:
+    type: http
+    behavior: classical
+    format: text
+    path: ./rules/tiktok.list
+    url: "https://raw.githubusercontent.com/lateautumn2/ruleset_geodata/clash-ruleset/tiktok.list"
+    interval: 86400
+
+  bilibili:
+    type: http
+    behavior: classical
+    format: text
+    path: ./rules/bilibili.list
+    url: "https://raw.githubusercontent.com/lateautumn2/ruleset_geodata/clash-ruleset/bilibili.list"
+    interval: 86400
+
+  ai:
+    type: http
+    behavior: classical
+    format: text
+    path: ./rules/ai.list
+    url: "https://raw.githubusercontent.com/lateautumn2/ruleset_geodata/clash-ruleset/ai.list"
+    interval: 86400
+
+  networktest:
+    type: http
+    behavior: classical
+    format: text
+    path: ./rules/networktest.list
+    url: "https://raw.githubusercontent.com/lateautumn2/ruleset_geodata/clash-ruleset/networktest.list"
+    interval: 86400
+
+  proxy:
+    type: http
+    behavior: classical
+    format: text
+    path: ./rules/proxy.list
+    url: "https://raw.githubusercontent.com/lateautumn2/ruleset_geodata/clash-ruleset/proxy.list"
+    interval: 86400
+
+  cn:
+    type: http
+    behavior: classical
+    format: text
+    path: ./rules/cn.list
+    url: "https://raw.githubusercontent.com/lateautumn2/ruleset_geodata/clash-ruleset/cn.list"
+    interval: 86400
+
+  netflixip:
+    type: http
+    behavior: classical
+    format: text
+    path: ./rules/netflixip.list
+    url: "https://raw.githubusercontent.com/lateautumn2/ruleset_geodata/clash-ruleset/netflixip.list"
+    interval: 86400
+
+  telegramip:
+    type: http
+    behavior: classical
+    format: text
+    path: ./rules/telegramip.list
+    url: "https://raw.githubusercontent.com/lateautumn2/ruleset_geodata/clash-ruleset/telegramip.list"
+    interval: 86400
+
+  privateip:
+    type: http
+    behavior: classical
+    format: text
+    path: ./rules/privateip.list
+    url: "https://raw.githubusercontent.com/lateautumn2/ruleset_geodata/clash-ruleset/privateip.list"
+    interval: 86400
+
+  cnip:
+    type: http
+    behavior: classical
+    format: text
+    path: ./rules/cnip.list
+    url: "https://raw.githubusercontent.com/lateautumn2/ruleset_geodata/clash-ruleset/cnip.list"
+    interval: 86400
+
+rules:
+  - RULE-SET,ads,🛑 广告拦截
+  - RULE-SET,applications,🖥️ 直连软件
+  - RULE-SET,private,🔒 私有网络
+  - RULE-SET,microsoft-cn,Ⓜ️ 微软服务
+  - RULE-SET,apple-cn,🍎 苹果服务
+  - RULE-SET,google-cn,🇬 谷歌服务
+  - RULE-SET,games-cn,🎮 游戏服务
+  - RULE-SET,netflix,🎥 奈飞视频
+  - RULE-SET,disney,📽️ 迪士尼+
+  - RULE-SET,max,🎞️ Max
+  - RULE-SET,primevideo,🎬 Prime Video
+  - RULE-SET,appletv,🍎 Apple TV+
+  - RULE-SET,youtube,📹 油管视频
+  - RULE-SET,tiktok,🎵 TikTok
+  - RULE-SET,bilibili,📺 哔哩哔哩
+  - RULE-SET,ai,🤖 人工智能
+  - RULE-SET,networktest,📈 网络测试
+  - RULE-SET,proxy,🪜 代理域名
+  - RULE-SET,cn,🇨🇳 直连域名
+  - RULE-SET,netflixip,🎥 奈飞视频,no-resolve
+  - RULE-SET,telegramip,📲 电报消息,no-resolve
+  - RULE-SET,privateip,🔒 私有网络,no-resolve
+  - RULE-SET,cnip,🇨🇳 直连 IP
+```
 
 ---
 **特别说明：sing-box rule_set 规则集适配了 v1.9.0+ 版本内核新增的 `domain_suffix` 特性：`"domain_suffix": "baidu.com"`（可匹配 `baidu.com` 和 `baike.baidu.com`），与 mihomo 内核一致了。原特性仅有 `"domain_suffix": ".baidu.com"`（仅匹配 `baike.baidu.com` 而无法匹配 `baidu.com`），详见：[domain_suffix 不完整匹配二级域名](https://github.com/SagerNet/sing-box/issues/1189)。如需使用本规则集，请尽快升级内核！**
