@@ -244,6 +244,228 @@ rules:
   - RULE-SET,privateip,🔒 私有网络,no-resolve
   - RULE-SET,cnip,🇨🇳 直连 IP
 ```
+### ① Sing-box 内核(已修改)
+- 注：以下只是节选，请酌情套用
+
+```
+  "outbounds": [
+    { "tag": "🚀 节点选择", "type": "selector", "outbounds": [ "🇭🇰 香港节点", "🇹🇼 台湾节点", "🇯🇵 日本节点", "🇰🇷 韩国节点", "🇸🇬 新加坡节点", "🇺🇸 美国节点"] },
+    { "tag": "📈 网络测试", "type": "selector", "outbounds": ["🎯 全球直连",  "🇭🇰 香港节点", "🇹🇼 台湾节点", "🇯🇵 日本节点", "🇰🇷 韩国节点", "🇸🇬 新加坡节点", "🇺🇸 美国节点"] },
+    { "tag": "🤖 人工智能", "type": "selector", "outbounds": ["🚀 节点选择",  "🇭🇰 香港节点", "🇹🇼 台湾节点", "🇯🇵 日本节点", "🇰🇷 韩国节点", "🇸🇬 新加坡节点", "🇺🇸 美国节点"] },
+    { "tag": "🎮 游戏服务", "type": "selector", "outbounds": ["🎯 全球直连", "🚀 节点选择"] },
+    { "tag": "Ⓜ️ 微软服务", "type": "selector", "outbounds": ["🎯 全球直连", "🚀 节点选择"] },
+    { "tag": "🧱 谷歌服务", "type": "selector", "outbounds": ["🎯 全球直连", "🚀 节点选择"] },
+    { "tag": "🍎 苹果服务", "type": "selector", "outbounds": ["🎯 全球直连", "🚀 节点选择"] },
+    { "tag": "🎥 奈飞视频", "type": "selector", "outbounds": ["🚀 节点选择", "🇭🇰 香港节点", "🇹🇼 台湾节点", "🇯🇵 日本节点", "🇰🇷 韩国节点", "🇸🇬 新加坡节点", "🇺🇸 美国节点"] },
+    { "tag": "📽️ 迪士尼+", "type": "selector", "outbounds": ["🚀 节点选择", "🇭🇰 香港节点", "🇹🇼 台湾节点", "🇯🇵 日本节点", "🇰🇷 韩国节点", "🇸🇬 新加坡节点", "🇺🇸 美国节点"] },
+    { "tag": "📹 油管视频", "type": "selector", "outbounds": ["🚀 节点选择", "🇭🇰 香港节点", "🇹🇼 台湾节点", "🇯🇵 日本节点", "🇰🇷 韩国节点", "🇸🇬 新加坡节点", "🇺🇸 美国节点"] },
+    { "tag": "🎵 TikTok", "type": "selector", "outbounds": ["🚀 节点选择", "🇭🇰 香港节点", "🇹🇼 台湾节点", "🇯🇵 日本节点", "🇰🇷 韩国节点", "🇸🇬 新加坡节点", "🇺🇸 美国节点"] },
+    {
+      "tag": "❤️ Emby公益服",
+      "type": "selector",
+      "outbounds": ["🚀 节点选择", "🎯 全球直连", "🇭🇰 香港节点", "🇹🇼 台湾节点", "🇯🇵 日本节点", "🇰🇷 韩国节点", "🇸🇬 新加坡节点", "🇺🇸 美国节点"]
+    },
+    { "tag": "📺 哔哩哔哩", "type": "selector", "outbounds": ["🎯 全球直连", "🚀 节点选择"] },
+    { "tag": "🇨🇳 直连域名", "type": "selector", "outbounds": ["🎯 全球直连", "🚀 节点选择"] },
+    { "tag": "🇨🇳 直连 IP", "type": "selector", "outbounds": ["🎯 全球直连", "🚀 节点选择"] },
+    { "tag": "🪜 代理域名", "type": "selector", "outbounds": ["🚀 节点选择", "🎯 全球直连"] },
+    { "tag": "📲 电报消息", "type": "selector", "outbounds": ["🚀 节点选择"] },
+    { "tag": "🖥️ 直连软件", "type": "selector", "outbounds": ["🎯 全球直连"] },
+    { "tag": "🔒 私有网络", "type": "selector", "outbounds": ["🎯 全球直连"] },
+    { "tag": "🛑 广告拦截", "type": "selector", "outbounds": ["block"] },
+    { "tag": "🎯 全球直连", "type": "selector", "outbounds": ["direct"] },
+    { "tag": "🐟 漏网之鱼", "type": "selector", "outbounds": ["🚀 节点选择", "🎯 全球直连"] },
+    { "tag": "block", "type": "block" },
+    { "tag": "direct", "type": "direct" },
+    { "tag": "dns-out", "type": "dns" },
+  ],
+  "route": {
+    "rules": [
+      {
+        "geosite": "category-ads-all",
+        "outbound": "block"
+      },
+      {
+        "outbound": "dns-out",
+        "protocol": "dns"
+      },
+      {
+        "clash_mode": "direct",
+        "outbound": "🎯 全球直连"
+      },
+      {
+        "clash_mode": "global",
+        "outbound": "🚀 节点选择"
+      },
+      {
+        "geoip": ["cn", "private"],
+        "outbound": "🎯 全球直连"
+      },
+      {
+        "geosite": "cn",
+        "outbound": "🎯 全球直连"
+      },
+      { "rule_set": ["ads"], "outbound": "🛑 广告拦截" },
+      { "rule_set": ["applications"], "outbound": "🖥️ 直连软件" },
+      { "rule_set": ["private"], "outbound": "🔒 私有网络" },
+      { "rule_set": ["microsoft-cn"], "outbound": "Ⓜ️ 微软服务" },
+      { "rule_set": ["apple-cn"], "outbound": "🍎 苹果服务" },
+      { "rule_set": ["google-cn"], "outbound": "🧱 谷歌服务" },
+      { "rule_set": ["games-cn"], "outbound": "🎮 游戏服务" },
+      { "rule_set": ["netflix"], "outbound": "🎥 奈飞视频" },
+      { "rule_set": ["disney"], "outbound": "📽️ 迪士尼+" },
+      { "rule_set": ["youtube"], "outbound": "📹 油管视频" },
+      { "rule_set": ["tiktok"], "outbound": "🎵 TikTok" },
+      { "rule_set": ["bilibili"], "outbound": "📺 哔哩哔哩" },
+      { "rule_set": ["ai"], "outbound": "🤖 人工智能" },
+      { "rule_set": ["networktest"], "outbound": "📈 网络测试" },
+      { "rule_set": ["proxy"], "outbound": "🪜 代理域名" },
+      { "rule_set": ["cn"], "outbound": "🇨🇳 直连域名" },
+      { "rule_set": ["netflixip"], "outbound": "🎥 奈飞视频" },
+      { "rule_set": ["telegramip"], "outbound": "📲 电报消息" },
+      { "rule_set": ["privateip"], "outbound": "🔒 私有网络" },
+      { "rule_set": ["cnip"], "outbound": "🇨🇳 直连 IP" },
+      { "rule_set": ["emby"], "outbound": "❤️ Emby公益服" }
+    ],
+    "final": "🐟 漏网之鱼",
+    "rule_set": [
+      {
+        "tag": "fakeip-filter",
+        "type": "remote",
+        "format": "binary",
+        "url": "https://raw.githubusercontent.com/lateautumn2/ruleset_geodata/sing-box-ruleset/fakeip-filter.srs"
+      },
+      {
+        "tag": "ads",
+        "type": "remote",
+        "format": "binary",
+        "url": "https://raw.githubusercontent.com/lateautumn2/ruleset_geodata/sing-box-ruleset/ads.srs"
+      },
+      {
+        "tag": "applications",
+        "type": "remote",
+        "format": "binary",
+        "url": "https://raw.githubusercontent.com/lateautumn2/ruleset_geodata/sing-box-ruleset/applications.srs"
+      },
+      {
+        "tag": "private",
+        "type": "remote",
+        "format": "binary",
+        "url": "https://raw.githubusercontent.com/lateautumn2/ruleset_geodata/sing-box-ruleset/private.srs"
+      },
+      {
+        "tag": "microsoft-cn",
+        "type": "remote",
+        "format": "binary",
+        "url": "https://raw.githubusercontent.com/lateautumn2/ruleset_geodata/sing-box-ruleset/microsoft-cn.srs"
+      },
+      {
+        "tag": "apple-cn",
+        "type": "remote",
+        "format": "binary",
+        "url": "https://raw.githubusercontent.com/lateautumn2/ruleset_geodata/sing-box-ruleset/apple-cn.srs"
+      },
+      {
+        "tag": "google-cn",
+        "type": "remote",
+        "format": "binary",
+        "url": "https://raw.githubusercontent.com/lateautumn2/ruleset_geodata/sing-box-ruleset/google-cn.srs"
+      },
+      {
+        "tag": "games-cn",
+        "type": "remote",
+        "format": "binary",
+        "url": "https://raw.githubusercontent.com/lateautumn2/ruleset_geodata/sing-box-ruleset/games-cn.srs"
+      },
+      {
+        "tag": "netflix",
+        "type": "remote",
+        "format": "binary",
+        "url": "https://raw.githubusercontent.com/lateautumn2/ruleset_geodata/sing-box-ruleset/netflix.srs"
+      },
+      {
+        "tag": "disney",
+        "type": "remote",
+        "format": "binary",
+        "url": "https://raw.githubusercontent.com/lateautumn2/ruleset_geodata/sing-box-ruleset/disney.srs"
+      },
+      {
+        "tag": "youtube",
+        "type": "remote",
+        "format": "binary",
+        "url": "https://raw.githubusercontent.com/lateautumn2/ruleset_geodata/sing-box-ruleset/youtube.srs"
+      },
+      {
+        "tag": "tiktok",
+        "type": "remote",
+        "format": "binary",
+        "url": "https://raw.githubusercontent.com/lateautumn2/ruleset_geodata/sing-box-ruleset/tiktok.srs"
+      },
+      {
+        "tag": "bilibili",
+        "type": "remote",
+        "format": "binary",
+        "url": "https://raw.githubusercontent.com/lateautumn2/ruleset_geodata/sing-box-ruleset/bilibili.srs"
+      },
+      {
+        "tag": "ai",
+        "type": "remote",
+        "format": "binary",
+        "url": "https://raw.githubusercontent.com/lateautumn2/ruleset_geodata/sing-box-ruleset/ai.srs"
+      },
+      {
+        "tag": "networktest",
+        "type": "remote",
+        "format": "binary",
+        "url": "https://raw.githubusercontent.com/lateautumn2/ruleset_geodata/sing-box-ruleset/networktest.srs"
+      },
+      {
+        "tag": "proxy",
+        "type": "remote",
+        "format": "binary",
+        "url": "https://raw.githubusercontent.com/lateautumn2/ruleset_geodata/sing-box-ruleset/proxy.srs"
+      },
+      {
+        "tag": "cn",
+        "type": "remote",
+        "format": "binary",
+        "url": "https://raw.githubusercontent.com/lateautumn2/ruleset_geodata/sing-box-ruleset/cn.srs"
+      },
+      {
+        "tag": "netflixip",
+        "type": "remote",
+        "format": "binary",
+        "url": "https://raw.githubusercontent.com/lateautumn2/ruleset_geodata/sing-box-ruleset/netflixip.srs"
+      },
+      {
+        "tag": "telegramip",
+        "type": "remote",
+        "format": "binary",
+        "url": "https://raw.githubusercontent.com/lateautumn2/ruleset_geodata/sing-box-ruleset/telegramip.srs"
+      },
+      {
+        "tag": "privateip",
+        "type": "remote",
+        "format": "binary",
+        "url": "https://raw.githubusercontent.com/lateautumn2/ruleset_geodata/sing-box-ruleset/privateip.srs"
+      },
+      {
+        "tag": "cnip",
+        "type": "remote",
+        "format": "binary",
+        "url": "https://raw.githubusercontent.com/lateautumn2/ruleset_geodata/sing-box-ruleset/cnip.srs"
+      },
+      {
+        "tag": "emby",
+        "type": "remote",
+        "format": "source",
+        "url": "https://raw.githubusercontent.com/lateautumn2/ruleset_geodata/sing-box-ruleset/emby.json"
+      }
+    ]
+  }
+}
+
+```
 
 ---
 **特别说明：sing-box rule_set 规则集适配了 v1.9.0+ 版本内核新增的 `domain_suffix` 特性：`"domain_suffix": "baidu.com"`（可匹配 `baidu.com` 和 `baike.baidu.com`），与 mihomo 内核一致了。原特性仅有 `"domain_suffix": ".baidu.com"`（仅匹配 `baike.baidu.com` 而无法匹配 `baidu.com`），详见：[domain_suffix 不完整匹配二级域名](https://github.com/SagerNet/sing-box/issues/1189)。如需使用本规则集，请尽快升级内核！**
