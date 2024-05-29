@@ -31,6 +31,7 @@ proxy-groups:
   - {name: 📲 电报消息, type: select, proxies: [🚀 节点选择]}
   - {name: 🖥️ 直连软件, type: select, proxies: [🎯 全球直连]}
   - {name: 🔒 私有网络, type: select, proxies: [🎯 全球直连]}
+  - { name: ❤️ Emby公益服, type: select, proxies: [🎯 全球直连, 🇭🇰 香港节点, 🇹🇼 台湾节点, 🇯🇵 日本节点, 🇰🇷 韩国节点, 🇸🇬 新加坡节点, 🇺🇸 美国节点] }
   - {name: 🛑 广告拦截, type: select, proxies: [REJECT]}
   - {name: 🎯 全球直连, type: select, proxies: [DIRECT]}
 
@@ -218,6 +219,13 @@ rule-providers:
     path: ./rules/cnip.list
     url: "https://raw.githubusercontent.com/lateautumn2/ruleset_geodata/clash-ruleset/cnip.list"
     interval: 86400
+  emby:
+    type: http
+    behavior: classical
+    format: text
+    path: ./rules/emby.list
+    url: 'https://raw.githubusercontent.com/lateautumn2/ruleset_geodata/clash-ruleset/emby.list'
+    interval: 86400
 
 rules:
   - RULE-SET,ads,🛑 广告拦截
@@ -237,6 +245,7 @@ rules:
   - RULE-SET,bilibili,📺 哔哩哔哩
   - RULE-SET,ai,🤖 人工智能
   - RULE-SET,networktest,📈 网络测试
+  - RULE-SET,emby,❤️ Emby公益服
   - RULE-SET,proxy,🪜 代理域名
   - RULE-SET,cn,🇨🇳 直连域名
   - RULE-SET,netflixip,🎥 奈飞视频,no-resolve
@@ -260,11 +269,7 @@ rules:
     { "tag": "📽️ 迪士尼+", "type": "selector", "outbounds": ["🚀 节点选择", "🇭🇰 香港节点", "🇹🇼 台湾节点", "🇯🇵 日本节点", "🇰🇷 韩国节点", "🇸🇬 新加坡节点", "🇺🇸 美国节点"] },
     { "tag": "📹 油管视频", "type": "selector", "outbounds": ["🚀 节点选择", "🇭🇰 香港节点", "🇹🇼 台湾节点", "🇯🇵 日本节点", "🇰🇷 韩国节点", "🇸🇬 新加坡节点", "🇺🇸 美国节点"] },
     { "tag": "🎵 TikTok", "type": "selector", "outbounds": ["🚀 节点选择", "🇭🇰 香港节点", "🇹🇼 台湾节点", "🇯🇵 日本节点", "🇰🇷 韩国节点", "🇸🇬 新加坡节点", "🇺🇸 美国节点"] },
-    {
-      "tag": "❤️ Emby公益服",
-      "type": "selector",
-      "outbounds": ["🚀 节点选择", "🎯 全球直连", "🇭🇰 香港节点", "🇹🇼 台湾节点", "🇯🇵 日本节点", "🇰🇷 韩国节点", "🇸🇬 新加坡节点", "🇺🇸 美国节点"]
-    },
+    { "tag": "❤️ Emby公益服","type": "selector","outbounds": ["🚀 节点选择", "🎯 全球直连", "🇭🇰 香港节点", "🇹🇼 台湾节点", "🇯🇵 日本节点", "🇰🇷 韩国节点", "🇸🇬 新加坡节点", "🇺🇸 美国节点"]},
     { "tag": "📺 哔哩哔哩", "type": "selector", "outbounds": ["🎯 全球直连", "🚀 节点选择"] },
     { "tag": "🇨🇳 直连域名", "type": "selector", "outbounds": ["🎯 全球直连", "🚀 节点选择"] },
     { "tag": "🇨🇳 直连 IP", "type": "selector", "outbounds": ["🎯 全球直连", "🚀 节点选择"] },
