@@ -178,7 +178,7 @@ jobs:
 
           for ((i = 0; i < ${#lines[@]}; i++)); do
             mkdir -p "./tools/rules/${lines[i]}/"
-            curl -sSL "${add_download_url}/${lines[i]}.list" > "./tools/rules/${lines[i]}/${lines[i]}.list"
+            curl -sSL "${add_download_url}/${lines[i]}.list" | grep 'IP-CIDR' | sed -e 's/^IP-CIDR,//' -e 's/^IP-CIDR6,//'> "./tools/rules/${lines[i]}/${lines[i]}.list"
           done
 
           # Ready for generate `sing-box` rule_set
@@ -196,7 +196,7 @@ jobs:
 
           for ((i = 0; i < 4; i++)); do
             mkdir -p "./tools/rules/${ips[i]}/"
-           curl -sSL "${ips_download_url}/${ips[i]}.list"| grep 'IP-CIDR' > "./tools/ips/${ips[i]}/${ips[i]}.list"
+           curl -sSL "${ips_download_url}/${ips[i]}.list"| grep 'IP-CIDR' > "./tools/rules/${ips[i]}/${ips[i]}.list"
           done
 
            for ((i = 0; i < ${#lines[@]}; i++)); do
