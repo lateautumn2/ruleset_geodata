@@ -136,7 +136,7 @@ jobs:
 
           for ((i = 0; i < 4; i++)); do
             echo 'payload:' > "./clash-ruleset/${ips[i]}.yaml"
-            curl -sSL "${ips_download_url}/${ips[i]}.list" | grep -e 'IP' | sed 's/^/  - /' >> "./clash-ruleset/${ips[i]}.yaml"
+            curl -sSL "${ips_download_url}/${ips[i]}.list" | grep 'IP-CIDR' | sed 's/^/  - /' >> "./clash-ruleset/${ips[i]}.yaml"
           done
 
           for ((i = 0; i < ${#lines[@]}; i++)); do
@@ -155,7 +155,7 @@ jobs:
           done
 
           for ((i = 0; i < 4; i++)); do
-            curl -sSL "${ips_download_url}/${ips[i]}.list" | grep -e 'IP' > "./clash-ruleset/${ips[i]}.list"
+            curl -sSL "${ips_download_url}/${ips[i]}.list" | grep 'IP-CIDR' > "./clash-ruleset/${ips[i]}.list"
           done
 
           for ((i = 0; i < ${#lines[@]}; i++)); do
@@ -172,7 +172,7 @@ jobs:
 
           for ((i = 0; i < 4; i++)); do
             mkdir -p "./tools/ips/${ips[i]}/"
-            curl -sSL "${ips_download_url}/${ips[i]}.list"| grep -e 'IP' > "./tools/ips/${ips[i]}/${ips[i]}.list"
+            curl -sSL "${ips_download_url}/${ips[i]}.list"| grep 'IP-CIDR' > "./tools/ips/${ips[i]}/${ips[i]}.list"
           done
 
           for ((i = 0; i < ${#lines[@]}; i++)); do
@@ -194,7 +194,7 @@ jobs:
 
           for ((i = 0; i < 4; i++)); do
             mkdir -p "./tools/rules/${ips[i]}/"
-            curl -sSL "${ips_download_url}/${ips[i]}.list"| grep -e 'IP' > "./tools/rules/${ips[i]}/${ips[i]}.yaml"
+            curl -sSL "${ips_download_url}/${ips[i]}.list"| grep 'IP-CIDR' > "./tools/rules/${ips[i]}/${ips[i]}.yaml"
           done
 
            for ((i = 0; i < ${#lines[@]}; i++)); do
