@@ -18,7 +18,7 @@ jobs:
           echo "update_version=$(date -d '+8 hours' +%Y-%m-%d)" >> ${GITHUB_ENV}
           echo "domains_download_url=https://raw.githubusercontent.com/DustinWin/domain-list-custom/domains" >> ${GITHUB_ENV}
           echo "ips_download_url=https://raw.githubusercontent.com/DustinWin/geoip/ips" >> ${GITHUB_ENV}
-          echo "add_download_url=https://raw.githubusercontent.com/lateautumn2/ruleset_geodata/master/addlist" >> ${GITHUB_ENV}
+          echo "add_download_url=https://raw.githubusercontent.com/lateautumn2/ruleset_geodata/master/template" >> ${GITHUB_ENV}
         shell: bash
 
       - name: Clone Repository
@@ -115,7 +115,8 @@ jobs:
 
       - name: Generate `clash` rule-set
         run: |
-          readarray -t lines < <(ls -1 "${add_download_url}")
+          curl -o data.txt https://raw.githubusercontent.com/lateautumn2/ruleset_geodata/master/addList
+          readarray -t lines < data.txt
           mkdir -p ./clash-ruleset/ ./sing-box-ruleset/
           domains=(ads private microsoft-cn apple-cn google-cn games-cn ai netflix disney max primevideo appletv youtube tiktok bilibili proxy cn)
           archs=(applications networktest)
@@ -165,14 +166,14 @@ jobs:
           # Ready for generate `clash` rule-set (mrs)
           for ((i = 0; i < 17; i++)); do
             mkdir -p "./tools/domains/${domains[i]}/"
-            curl "${domains_download_url}/${domains[i]}.list" | grep -E 'DOMAIN,|DOMAIN-SUFFIX,|DOMAIN-KEYWORD' > "./tools/domains/${domains[i]}/${domains[i]}.list"
+            curl "${domains_download_url}/${domains[i]}.list" | grep -E 'DOMAIN,|DOMAIN-SUFFIX,' | sed -e 's/^DOMAIN,//' -e 's/^DOMAIN-SUFFIX,/+\./' > "./tools/domains/${domains[i]}/${domains[i]}.list"
           done
           mkdir -p "./tools/domains/fakeip-filter/"
-          curl -sSL "${domains_download_url}/fakeip-filter.list" | grep -E 'DOMAIN,|DOMAIN-SUFFIX,|DOMAIN-KEYWORD' > ./tools/domains/fakeip-filter/fakeip-filter.list
+          curl -sSL "${domains_download_url}/fakeip-filter.list" | sed -e 's/^DOMAIN,//' -e 's/^DOMAIN-SUFFIX,/+\./' -e 's/^DOMAIN-REGEX,//' -e 's/^\.//' > ./tools/domains/fakeip-filter/fakeip-filter.list
 
           for ((i = 0; i < 4; i++)); do
             mkdir -p "./tools/ips/${ips[i]}/"
-            curl -sSL "${ips_download_url}/${ips[i]}.list"| grep 'IP-CIDR' > "./tools/ips/${ips[i]}/${ips[i]}.list"
+            curl -sSL "${ips_download_url}/${ips[i]}.list"| grep 'IP-CIDR' | sed -e 's/^IP-CIDR,//' -e 's/^IP-CIDR6,//' > "./tools/ips/${ips[i]}/${ips[i]}.list"
           done
 
           for ((i = 0; i < ${#lines[@]}; i++)); do
@@ -194,7 +195,7 @@ jobs:
 
           for ((i = 0; i < 4; i++)); do
             mkdir -p "./tools/rules/${ips[i]}/"
-           curl -sSL "${ips_download_url}/${ips[i]}.list"| grep 'IP-CIDR' | sed -e 's/^IP-CIDR,//' -e 's/^IP-CIDR6,//' > "./tools/ips/${ips[i]}/${ips[i]}.list"
+           curl -sSL "${ips_download_url}/${ips[i]}.list"| grep 'IP-CIDR' > "./tools/ips/${ips[i]}/${ips[i]}.list"
           done
 
            for ((i = 0; i < ${#lines[@]}; i++)); do
