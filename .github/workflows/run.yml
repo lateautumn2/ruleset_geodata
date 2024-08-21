@@ -227,7 +227,7 @@ jobs:
           for ((i = 0; i < ${#list[@]}; i++)); do
             ./mihomo convert-ruleset ipcidr text "./rules/${list[i]}/${list[i]}.list" ../clash-ruleset/${list[i]}.mrs
           done
-          rm -rf ./mihomo* ./domains/ ./ips/
+          rm -rf ./mihomo* ./domains/ ./ips/ ./rules/
 
       - name: Download and unzip `sing-box core`
         run: |
