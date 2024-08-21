@@ -1,0 +1,242 @@
+name: Generate config
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 19 * * *"
+  push:
+    branches:
+      - master
+    paths-ignore:
+      - "**/README.md"
+      - "**/convert.sh"
+      - ".github/workflows/delete-old-workflows.yml"
+      - ".github/workflows/build.yml"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set variables
+        run: |
+          echo "update_version=$(date -d '+8 hours' +%Y-%m-%d)" >> ${GITHUB_ENV}
+          echo "fakeip_filter=https://raw.githubusercontent.com/juewuy/ShellCrash/dev/public/fake_ip_filter.list" >> $GITHUB_ENV
+          echo "trackerslist=https://raw.githubusercontent.com/XIU2/TrackersListCollection/master/all.txt" >> $GITHUB_ENV
+        shell: bash
+
+      - name: Generate `clash` geodata-fakeip-user.yaml
+        run: |
+          mkdir -p ./tmp/ ./clash-config/ ./sing-box-config/
+          cat <<EOF > ./clash-config/geodata-fakeip-user.yaml
+          ipv6: true
+          mode: rule
+          log-level: error
+          allow-lan: true
+          unified-delay: false
+          tcp-concurrent: true
+          external-controller-tls: 127.0.0.1:9090
+          find-process-mode: strict
+          global-client-fingerprint: chrome
+          profile: {store-selected: true}
+
+          geodata-mode: true
+          geox-url:
+            geosite: "https://cdn.jsdelivr.net/gh/DustinWin/ruleset_geodata@clash/geosite.dat"
+            geoip: "https://cdn.jsdelivr.net/gh/DustinWin/ruleset_geodata@clash/geoip-lite.dat"
+            mmdb: "https://cdn.jsdelivr.net/gh/DustinWin/ruleset_geodata@clash/Country-lite.mmdb"
+          geo-auto-update: true
+          geo-update-interval: 24
+
+          sniffer:
+            enable: true
+            parse-pure-ip: true
+            sniff: {HTTP: {ports: [80, 8080-8880]}, TLS: {ports: [443, 8443]}, QUIC: {ports: [443, 8443]}}
+            skip-domain: ['Mijia Cloud']
+
+          dns:
+            enable: true
+            prefer-h3: true
+            ipv6: true
+            listen: 0.0.0.0:1053
+            fake-ip-range: 198.18.0.1/16
+            enhanced-mode: fake-ip
+            fake-ip-filter:
+              - '*'
+          EOF
+          curl -sSL ${fakeip_filter} | grep -v '#' | sed -e '/^\s*$/d' -e "s/.*/'&'/" -e 's/^/    - /' >> ./clash-config/geodata-fakeip-user.yaml
+          curl -sSL ${trackerslist} | grep -i '\.[A-Z]' | awk -F'[/:]' '{print $4}' | sed 's/^/    - /' >> ./clash-config/geodata-fakeip-user.yaml
+          cat <<EOF >> ./clash-config/geodata-fakeip-user.yaml
+            nameserver:
+              - 'https://223.5.5.5/dns-query#h3=true'
+              - https://1.12.12.12/dns-query
+          EOF
+
+      - name: Generate `clash` geodata-fakeip-user-noprocess.yaml
+        run: |
+          grep -v 'find-process-mode' ./clash-config/geodata-fakeip-user.yaml > ./clash-config/geodata-fakeip-user-noprocess.yaml
+
+      - name: Generate `clash` geodata-fakeip-user-lite.yaml
+        run: |
+          sed 's/geosite.dat/geosite-lite.dat/' ./clash-config/geodata-fakeip-user.yaml > ./clash-config/geodata-fakeip-user-lite.yaml
+
+      - name: Generate `clash` geodata-fakeip-user-lite-noprocess.yaml
+        run: |
+          grep -v 'find-process-mode' ./clash-config/geodata-fakeip-user-lite.yaml > ./clash-config/geodata-fakeip-user-lite-noprocess.yaml
+
+      - name: Generate `clash` geodata-redirhost-user.yaml
+        run: |
+          cat <<EOF > ./clash-config/geodata-redirhost-user.yaml
+          ipv6: true
+          mode: rule
+          log-level: error
+          allow-lan: true
+          unified-delay: false
+          tcp-concurrent: true
+          external-controller-tls: 127.0.0.1:9090
+          find-process-mode: strict
+          global-client-fingerprint: chrome
+          profile: {store-selected: true}
+
+          geodata-mode: true
+          geox-url:
+            geosite: "https://cdn.jsdelivr.net/gh/DustinWin/ruleset_geodata@clash/geosite.dat"
+            geoip: "https://cdn.jsdelivr.net/gh/DustinWin/ruleset_geodata@clash/geoip-lite.dat"
+            mmdb: "https://cdn.jsdelivr.net/gh/DustinWin/ruleset_geodata@clash/Country-lite.mmdb"
+          geo-auto-update: true
+          geo-update-interval: 24
+
+          sniffer:
+            enable: true
+            parse-pure-ip: true
+            sniff: {HTTP: {ports: [80, 8080-8880]}, TLS: {ports: [443, 8443]}, QUIC: {ports: [443, 8443]}}
+            skip-domain: ['Mijia Cloud']
+
+          dns:
+            enable: true
+            prefer-h3: true
+            ipv6: true
+            listen: 0.0.0.0:1053
+            fake-ip-range: 198.18.0.1/16
+            enhanced-mode: fake-ip
+            fake-ip-filter: ['+.*']
+            nameserver:
+              - 'https://223.5.5.5/dns-query#h3=true'
+              - https://1.12.12.12/dns-query
+            nameserver-policy:
+              'geosite:ads': rcode://refused
+              'geosite:microsoft-cn,apple-cn,google-cn,games-cn,cn,private': ['https://223.5.5.5/dns-query#h3=true', https://1.12.12.12/dns-query]
+              'geosite:proxy': ['https://1.1.1.1/dns-query#🪜 代理域名&h3=true', 'https://8.8.8.8/dns-query#🪜 代理域名']
+          EOF
+
+      - name: Generate `clash` geodata-redirhost-user-noprocess.yaml
+        run: |
+          grep -v 'find-process-mode' ./clash-config/geodata-redirhost-user.yaml > ./clash-config/geodata-redirhost-user-noprocess.yaml
+
+      - name: Generate `clash` geodata-redirhost-user-lite.yaml
+        run: |
+          sed 's/geosite.dat/geosite-lite.dat/' ./clash-config/geodata-redirhost-user.yaml | grep -v 'geosite:ads' > ./clash-config/geodata-redirhost-user-lite.yaml
+
+      - name: Generate `clash` geodata-redirhost-user-lite-noprocess.yaml
+        run: |
+          grep -v 'find-process-mode' ./clash-config/geodata-redirhost-user-lite.yaml > ./clash-config/geodata-redirhost-user-lite-noprocess.yaml
+
+      - name: Generate `clash` ruleset-fakeip-user.yaml
+        run: |
+          sed -e '/geodata-mode: true/,/geo-update-interval: 24/d' -e '/^$/N;/\n$/D' ./clash-config/geodata-fakeip-user.yaml > ./clash-config/ruleset-fakeip-user.yaml
+
+      - name: Generate `clash` ruleset-fakeip-user-noprocess.yaml
+        run: |
+          grep -v 'find-process-mode' ./clash-config/ruleset-fakeip-user.yaml > ./clash-config/ruleset-fakeip-user-noprocess.yaml
+
+      - name: Generate `clash` ruleset-fakeip-user-noprocess.yaml
+        run: |
+          grep -v 'find-process-mode' ./clash-config/ruleset-fakeip-user.yaml > ./clash-config/ruleset-fakeip-user-noprocess.yaml
+
+      - name: Generate `clash` ruleset-redirhost-user.yaml
+        run: |
+          sed -e '/geodata-mode: true/,/geo-update-interval: 24/d' -e '/^$/N;/\n$/D' -e 's/geosite/rule-set/' ./clash-config/geodata-redirhost-user.yaml > ./clash-config/ruleset-redirhost-user.yaml
+
+      - name: Generate `clash` ruleset-redirhost-user-noprocess.yaml
+        run: |
+          grep -v 'find-process-mode' ./clash-config/ruleset-redirhost-user.yaml > ./clash-config/ruleset-redirhost-user-noprocess.yaml
+
+      - name: Generate `clash` ruleset-redirhost-user-lite.yaml
+        run: |
+          grep -v 'rule-set:ads' ./clash-config/ruleset-redirhost-user.yaml > ./clash-config/ruleset-redirhost-user-lite.yaml
+
+      - name: Generate `clash` ruleset-redirhost-user-lite-noprocess.yaml
+        run: |
+          grep -v 'find-process-mode' ./clash-config/ruleset-redirhost-user-lite.yaml > ./clash-config/ruleset-redirhost-user-lite-noprocess.yaml
+
+      - name: Generate `sing-box` geodata-dns.json
+        run: |
+          cat <<EOF > ./sing-box-config/geodata-dns.json
+          {
+            "dns": {
+              "servers": [
+                { "tag": "dns_block", "address": "rcode://refused" },
+                { "tag": "dns_alidns", "address": "h3://223.5.5.5/dns-query", "detour": "DIRECT" },
+                { "tag": "dns_dnspod", "address": "https://1.12.12.12/dns-query", "detour": "DIRECT" },
+                { "tag": "dns_fakeip", "address": "fakeip" }
+              ],
+              "rules": [
+                { "outbound": "any", "server": [ "dns_alidns", "dns_dnspod" ] },
+                { "clash_mode": "Direct", "server": [ "dns_alidns", "dns_dnspod" ] },
+                { "clash_mode": "Global", "server": "dns_fakeip", "rewrite_ttl": 1 },
+                { "geosite": [ "ads" ], "server": "dns_block" },
+                { "geosite": [ "fakeip-filter", "private" ], "query_type": [ "A", "AAAA" ], "server": [ "dns_alidns", "dns_dnspod" ] },
+                { "query_type": [ "A", "AAAA" ], "server": "dns_fakeip", "rewrite_ttl": 1 }
+              ],
+              "final": [ "dns_alidns", "dns_dnspod" ],
+              "strategy": "prefer_ipv6",
+              "independent_cache": true,
+              "reverse_mapping": true,
+              "fakeip": { "enabled": true, "inet4_range": "198.18.0.0/15", "inet6_range": "fc00::/18" }
+            }
+          }
+          EOF
+          rm -rf ./tmp*
+
+      - name: Generate `sing-box` geodata-dns-lite.json
+        run: |
+          grep -v 'dns_block' ./sing-box-config/geodata-dns.json > ./sing-box-config/geodata-dns-lite.json
+
+      - name: Generate `sing-box` ruleset-dns.json
+        run: |
+          sed 's/geosite/rule_set/' ./sing-box-config/geodata-dns.json > ./sing-box-config/ruleset-dns.json
+
+      - name: Generate `sing-box` ruleset-dns-lite.json
+        run: |
+          grep -v 'dns_block' ./sing-box-config/ruleset-dns.json > ./sing-box-config/ruleset-dns-lite.json
+
+      - name: Commit and push `clash-config` branch
+        run: |
+          cd ./clash-config/ || exit 1
+          git init
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          git checkout -b clash-config
+          git add . && git commit -m "Clash 配置文件更新于 ${update_version}"
+          git remote add origin "https://${{ github.actor }}:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}"
+          git push -f -u origin clash-config
+
+      - name: Commit and push `sing-box-config` branch
+        run: |
+          cd ./sing-box-config/ || exit 1
+          git init
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          git checkout -b sing-box-config
+          git add . && git commit -m "sing-box 配置文件更新于 ${update_version}"
+          git remote add origin "https://${{ github.actor }}:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}"
+          git push -f -u origin sing-box-config
+
+      - name: Purge jsDelivr CDN
+        run: |
+          cd ./clash-config/ || exit 1
+          for file in $(ls); do
+            curl -i "https://purge.jsdelivr.net/gh/${{ github.repository }}@clash-config/${file}"
+          done
+          cd ../sing-box-config/ || exit 1
+          for file in $(ls); do
+            curl -i "https://purge.jsdelivr.net/gh/${{ github.repository }}@sing-box-config/${file}"
+          done

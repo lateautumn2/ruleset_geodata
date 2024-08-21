@@ -2,12 +2,14 @@ name: Build ruleset and geodata
 on:
   workflow_dispatch:
   schedule:
-    - cron: "0 19 * * *"
+    - cron: "30 18 * * *"
   push:
     branches:
       - master
     paths-ignore:
       - "**/README.md"
+      - ".github/workflows/delete-old-workflows.yml"
+      - ".github/workflows/config.yml"
 
 jobs:
   build:
@@ -17,18 +19,12 @@ jobs:
         run: |
           echo "update_version=$(date -d '+8 hours' +%Y-%m-%d)" >> ${GITHUB_ENV}
           echo "domains_download_url=https://raw.githubusercontent.com/DustinWin/domain-list-custom/domains" >> ${GITHUB_ENV}
-          echo "ips_download_url=https://raw.githubusercontent.com/DustinWin/geoip/ips" >> ${GITHUB_ENV}
+          echo "ips_download_url=https://raw.githubusercontent.com/DustinWin/geoip/ips" >> ${GITHUB_ENV}      
           echo "add_download_url=https://raw.githubusercontent.com/lateautumn2/ruleset_geodata/master/template" >> ${GITHUB_ENV}
         shell: bash
 
       - name: Clone Repository
         uses: actions/checkout@master
-
-      - name: Checkout DustinWin/domain-list-custom
-        uses: actions/checkout@v4
-        with:
-          repository: DustinWin/domain-list-custom
-          path: custom
 
       - name: Checkout v2fly/domain-list-community
         uses: actions/checkout@v4
@@ -53,20 +49,18 @@ jobs:
       - name: Setup Go
         uses: actions/setup-go@v5
         with:
-          go-version-file: ./custom/go.mod
-          cache-dependency-path: ./custom/go.sum
+          go-version: '>=1.22'
+          cache-dependency-path: ./community/go.sum
 
       - name: Generate `clash` geodata
         run: |
           mkdir -p ./community/mydata/
           archs1=(ads private microsoft-cn apple-cn google-cn games-cn ai networktest netflix disney max primevideo appletv youtube tiktok bilibili proxy cn)
           archs2=(ads private microsoft-cn apple-cn google-cn games-cn ai networktest proxy cn)
-
-          # Generate `clash` geosite-all.dat
           for ((i = 0; i < 18; i++)); do
-            curl -sSL "${domains_download_url}/${archs1[i]}.list" | grep -E 'DOMAIN,|DOMAIN-SUFFIX,|DOMAIN-KEYWORD' | sed -e 's/^DOMAIN,/full:/' -e 's/^DOMAIN-SUFFIX,//' -e 's/^DOMAIN-KEYWORD,/keyword:/' > "./community/mydata/${archs1[i]}"
+            curl -sSL "${domains_download_url}/${archs1[i]}.list" | grep -Ev 'DOMAIN-REGEX,|PROCESS-' | sed -e '/^\s*$/d' -e 's/^DOMAIN,/full:/' -e 's/^DOMAIN-SUFFIX,//' -e 's/^DOMAIN-KEYWORD,/keyword:/' > "./community/mydata/${archs1[i]}"
           done
-          curl -sSL "${domains_download_url}/fakeip-filter.list" | sed -e 's/^DOMAIN,/full:/' -e 's/^DOMAIN-SUFFIX,//' -e 's/^DOMAIN-KEYWORD,/keyword:/' -e 's/^DOMAIN-REGEX,/regexp:/' > ./community/mydata/fakeip-filter
+          curl -sSL "${domains_download_url}/fakeip-filter.list" | grep -v 'PROCESS-' | sed -e '/^\s*$/d' -e 's/^DOMAIN,/full:/' -e 's/^DOMAIN-SUFFIX,//' -e 's/^DOMAIN-KEYWORD,/keyword:/' -e 's/^DOMAIN-REGEX,/regexp:/' > ./community/mydata/fakeip-filter
           cd ./community/
           go run ./ --datapath=./mydata/ --outputname geosite-all.dat
 
@@ -77,9 +71,9 @@ jobs:
           # Generate `clash` geosite.dat
           rm -f ./mydata/*
           for ((i = 0; i < 10; i++)); do
-            curl -sSL "${domains_download_url}/${archs2[i]}.list" | grep -E 'DOMAIN,|DOMAIN-SUFFIX,|DOMAIN-KEYWORD' | sed -e 's/^DOMAIN,/full:/' -e 's/^DOMAIN-SUFFIX,//' -e 's/^DOMAIN-KEYWORD,/keyword:/' > "./mydata/${archs2[i]}"
+            curl -sSL "${domains_download_url}/${archs2[i]}.list" | grep -Ev 'DOMAIN-REGEX,|PROCESS-' | sed -e '/^\s*$/d' -e 's/^DOMAIN,/full:/' -e 's/^DOMAIN-SUFFIX,//' -e 's/^DOMAIN-KEYWORD,/keyword:/' > "./mydata/${archs2[i]}"
           done
-          curl -sSL "${domains_download_url}/fakeip-filter.list" | sed -e 's/^DOMAIN,/full:/' -e 's/^DOMAIN-SUFFIX,//' -e 's/^DOMAIN-KEYWORD,/keyword:/' -e 's/^DOMAIN-REGEX,/regexp:/' > ./mydata/fakeip-filter
+          curl -sSL "${domains_download_url}/fakeip-filter.list" | grep -v 'PROCESS-' | sed -e '/^\s*$/d' -e 's/^DOMAIN,/full:/' -e 's/^DOMAIN-SUFFIX,//' -e 's/^DOMAIN-KEYWORD,/keyword:/' -e 's/^DOMAIN-REGEX,/regexp:/' > ./mydata/fakeip-filter
           go run ./ --datapath=./mydata/ --outputname geosite.dat
 
           # Generate `clash` geosite-lite.dat
@@ -90,7 +84,7 @@ jobs:
         run: |
           cd ./community/ || exit 1
           go install -trimpath -ldflags="-s -w -buildid=" github.com/metacubex/geo/cmd/geo@master
-          for file in $(ls *.dat | sed 's/\.dat$//'); do
+          for file in $(ls *.dat | sed 's/\..*//'); do
             geo convert site -i v2ray -o sing -f "./${file}.db" "./${file}.dat"
           done
 
@@ -111,116 +105,79 @@ jobs:
           for file in $(ls *.db); do
             install -Dp "./${file}" ../sing-box/
           done
-          rm -rf ../custom* ../community*
+          rm -rf ../community*
 
       - name: Generate `clash` rule-set
         run: |
+          mkdir -p ./clash-ruleset/ ./sing-box-ruleset/
           curl -o data.txt https://raw.githubusercontent.com/lateautumn2/ruleset_geodata/master/addList
           readarray -t lines < data.txt
-          mkdir -p ./clash-ruleset/ ./sing-box-ruleset/
           domains=(ads private microsoft-cn apple-cn google-cn games-cn ai netflix disney max primevideo appletv youtube tiktok bilibili proxy cn)
-          archs=(applications networktest)
+          archs=(fakeip-filter applications networktest)
           ips=(netflixip telegramip privateip cnip)
-
+  
           # Generate `clash` rule-set (yaml)
           for ((i = 0; i < 17; i++)); do
             echo 'payload:' > "./clash-ruleset/${domains[i]}.yaml"
-            curl -sSL "${domains_download_url}/${domains[i]}.list" | grep -E 'DOMAIN,|DOMAIN-SUFFIX,|DOMAIN-KEYWORD' | sed 's/^/  - /' >> "./clash-ruleset/${domains[i]}.yaml"
+            curl -sSL "${domains_download_url}/${domains[i]}.list" | grep -e 'DOMAIN' | sed 's/^/  - /' >> "./clash-ruleset/${domains[i]}.yaml"
           done
-          echo 'payload:' > "./clash-ruleset/fakeip-filter.yaml"
-          curl -sSL "${domains_download_url}/fakeip-filter.list" | grep -E 'DOMAIN,|DOMAIN-SUFFIX,|DOMAIN-KEYWORD' | sed 's/^/  - /' >> ./clash-ruleset/fakeip-filter.yaml
 
-          for ((i = 0; i < 2; i++)); do
+          for ((i = 0; i < 3; i++)); do
             echo 'payload:' > "./clash-ruleset/${archs[i]}.yaml"
             curl -sSL "${domains_download_url}/${archs[i]}.list" | sed 's/^/  - /' >> "./clash-ruleset/${archs[i]}.yaml"
           done
 
           for ((i = 0; i < 4; i++)); do
             echo 'payload:' > "./clash-ruleset/${ips[i]}.yaml"
-            curl -sSL "${ips_download_url}/${ips[i]}.list" | grep 'IP-CIDR' | sed 's/^/  - /' >> "./clash-ruleset/${ips[i]}.yaml"
+            curl -sSL "${ips_download_url}/${ips[i]}.list" | grep -e 'IP' | sed 's/^/  - /' >> "./clash-ruleset/${ips[i]}.yaml"
           done
 
           for ((i = 0; i < ${#lines[@]}; i++)); do
             echo 'payload:' > "./clash-ruleset/${lines[i]}.yaml"
             curl -sSL "${add_download_url}/${lines[i]}.list" | sed 's/^/  - /' >> "./clash-ruleset/${lines[i]}.yaml"
           done
-          
+
           # Generate `clash` rule-set (text)
           for ((i = 0; i < 17; i++)); do
-           curl -sSL "${domains_download_url}/${domains[i]}.list" | grep -E 'DOMAIN,|DOMAIN-SUFFIX,|DOMAIN-KEYWORD'  > "./clash-ruleset/${domains[i]}.list"
+            curl -sSL "${domains_download_url}/${domains[i]}.list" | grep -e 'DOMAIN'  > "./clash-ruleset/${domains[i]}.list"
           done
-          curl -sSL "${domains_download_url}/fakeip-filter.list" | grep -E 'DOMAIN,|DOMAIN-SUFFIX,|DOMAIN-KEYWORD' > ./clash-ruleset/fakeip-filter.list
 
-          for ((i = 0; i < 2; i++)); do
+          for ((i = 0; i < 3; i++)); do
             curl -sSL "${domains_download_url}/${archs[i]}.list"  > "./clash-ruleset/${archs[i]}.list"
           done
 
           for ((i = 0; i < 4; i++)); do
-            curl -sSL "${ips_download_url}/${ips[i]}.list" | grep 'IP-CIDR' > "./clash-ruleset/${ips[i]}.list"
+            curl -sSL "${ips_download_url}/${ips[i]}.list" | grep -e 'IP' > "./clash-ruleset/${ips[i]}.list"
           done
 
           for ((i = 0; i < ${#lines[@]}; i++)); do
             curl -sSL "${add_download_url}/${lines[i]}.list" > "./clash-ruleset/${lines[i]}.list"
           done
 
-          # Ready for generate `clash` rule-set (mrs)
-          for ((i = 0; i < 17; i++)); do
-            mkdir -p "./tools/domains/${domains[i]}/"
-            curl "${domains_download_url}/${domains[i]}.list" | grep -E 'DOMAIN,|DOMAIN-SUFFIX,' | sed -e 's/^DOMAIN,//' -e 's/^DOMAIN-SUFFIX,/+\./' > "./tools/domains/${domains[i]}/${domains[i]}.list"
-          done
-          mkdir -p "./tools/domains/fakeip-filter/"
-          curl -sSL "${domains_download_url}/fakeip-filter.list" | sed -e 's/^DOMAIN,//' -e 's/^DOMAIN-SUFFIX,/+\./' -e 's/^DOMAIN-REGEX,//' -e 's/^\.//' > ./tools/domains/fakeip-filter/fakeip-filter.list
-
-          for ((i = 0; i < 4; i++)); do
-            mkdir -p "./tools/ips/${ips[i]}/"
-            curl -sSL "${ips_download_url}/${ips[i]}.list"| grep 'IP-CIDR' | sed -e 's/^IP-CIDR,//' -e 's/^IP-CIDR6,//' > "./tools/ips/${ips[i]}/${ips[i]}.list"
-          done
           # Ready for generate `sing-box` rule_set
           for ((i = 0; i < 17; i++)); do
             mkdir -p "./tools/rules/${domains[i]}/"
-            curl "${domains_download_url}/${domains[i]}.list" | grep -E 'DOMAIN,|DOMAIN-SUFFIX,|DOMAIN-KEYWORD' > "./tools/rules/${domains[i]}/${domains[i]}.yaml"
+            curl "${domains_download_url}/${domains[i]}.list" | grep -v 'DOMAIN-REGEX,' | sed '/^\s*$/d' > "./tools/rules/${domains[i]}/${domains[i]}.yaml"
           done
-          mkdir -p "./tools/rules/fakeip-filter/"
-          curl "${domains_download_url}/fakeip-filter.list" > "./tools/rules/fakeip-filter/fakeip-filter.yaml"
 
-          for ((i = 0; i < 2; i++)); do
+          for ((i = 0; i < 3; i++)); do
             mkdir -p "./tools/rules/${archs[i]}/"
             curl "${domains_download_url}/${archs[i]}.list" > "./tools/rules/${archs[i]}/${archs[i]}.yaml"
           done
 
           for ((i = 0; i < 4; i++)); do
             mkdir -p "./tools/rules/${ips[i]}/"
-           curl -sSL "${ips_download_url}/${ips[i]}.list"| grep 'IP-CIDR' > "./tools/rules/${ips[i]}/${ips[i]}.yaml"
+            curl -sSL "${ips_download_url}/${ips[i]}.list"| grep 'IP-CIDR' > "./tools/rules/${ips[i]}/${ips[i]}.yaml"
           done
 
-           for ((i = 0; i < ${#lines[@]}; i++)); do
+          for ((i = 0; i < ${#lines[@]}; i++)); do
             mkdir -p "./tools/rules/${lines[i]}/"
             curl -sSL "${add_download_url}/${lines[i]}.list" > "./tools/rules/${lines[i]}/${lines[i]}.yaml"
           done
 
-      - name: Download and unzip `mihomo core`
-        run: |
-          mihomo_version=$(curl -sSL https://api.github.com/repos/MetaCubeX/mihomo/releases | grep 'tag_name' | grep -v 'Alpha' | head -n 1 | sed -e 's/.*v/v/' -e 's/".*//')
-          curl -sSL "https://github.com/MetaCubeX/mihomo/releases/download/${mihomo_version}/mihomo-linux-amd64-${mihomo_version}.gz" | gzip -d > ./tools/mihomo
-
-      - name: Generate `clash` rule-set (mrs)
-        run: |
-          cd ./tools/
-          chmod +x ./mihomo
-          list=($(ls ./domains/))
-          for ((i = 0; i < ${#list[@]}; i++)); do
-            ./mihomo convert-ruleset domain text "./domains/${list[i]}/${list[i]}.list" ../clash-ruleset/${list[i]}.mrs
-          done
-
-          list=($(ls ./ips/))
-          for ((i = 0; i < ${#list[@]}; i++)); do
-            ./mihomo convert-ruleset ipcidr text "./ips/${list[i]}/${list[i]}.list" ../clash-ruleset/${list[i]}.mrs
-          done
-          rm -rf ./mihomo* ./domains/ ./ips/
-
       - name: Download and unzip `sing-box core`
         run: |
-          sing_box_version=$(curl -sSL https://api.github.com/repos/SagerNet/sing-box/releases | grep 'tag_name' | grep 'alpha' | head -n 1 | sed -e 's/.*v//' -e 's/".*//')
+          sing_box_version=$(curl -sSL https://api.github.com/repos/SagerNet/sing-box/releases | grep 'tag_name' | grep 'rc' | head -n 1 | sed -e 's/.*v//' -e 's/".*//')
           wget "https://github.com/SagerNet/sing-box/releases/download/v${sing_box_version}/sing-box-${sing_box_version}-linux-amd64v3.tar.gz" -O - | tar -zxf - -C ./tools/
           mv -f ./tools/sing-box-${sing_box_version}-linux-amd64v3/sing-box ./tools/
 
@@ -253,17 +210,6 @@ jobs:
           git commit -m "Clash ruleset_geodata 文件更新于 ${update_version}"
           git remote add origin "https://${{ github.actor }}:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}"
           git push -f -u origin clash
-
-      - name: Release and upload `clash-ruleset` assets
-        uses: svenstaro/upload-release-action@v2
-        with:
-          repo_token: ${{ secrets.GITHUB_TOKEN }}
-          release_name: clash-ruleset
-          tag: clash-ruleset
-          overwrite: true
-          body: "Clash ruleset 规则集文件，包含 .yaml、.list 和 .mrs 格式"
-          file_glob: true
-          file: ./clash-ruleset/*
 
       - name: Commit and push `clash-ruleset` branch
         run: |
@@ -299,17 +245,6 @@ jobs:
           git remote add origin "https://${{ github.actor }}:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}"
           git push -f -u origin sing-box
 
-      - name: Release and upload `sing-box-ruleset` assets
-        uses: svenstaro/upload-release-action@v2
-        with:
-          repo_token: ${{ secrets.GITHUB_TOKEN }}
-          release_name: sing-box-ruleset
-          tag: sing-box-ruleset
-          overwrite: true
-          body: "sing-box ruleset 规则集文件，包含 .srs 和 .json 格式"
-          file_glob: true
-          file: ./sing-box-ruleset/*
-
       - name: Commit and push `sing-box-ruleset` branch
         run: |
           cd ./sing-box-ruleset/ || exit 1
@@ -327,23 +262,15 @@ jobs:
           for file in $(ls); do
             curl -i "https://purge.jsdelivr.net/gh/${{ github.repository }}@clash/${file}"
           done
-          cd ../sing-box/ || exit 1
-          for file in $(ls); do
-            curl -i "https://purge.jsdelivr.net/gh/${{ github.repository }}@sing-box/${file}"
-          done
           cd ../clash-ruleset/ || exit 1
           for file in $(ls); do
             curl -i "https://purge.jsdelivr.net/gh/${{ github.repository }}@clash-ruleset/${file}"
+          done
+          cd ../sing-box/ || exit 1
+          for file in $(ls); do
+            curl -i "https://purge.jsdelivr.net/gh/${{ github.repository }}@sing-box/${file}"
           done
           cd ../sing-box-ruleset/ || exit 1
           for file in $(ls); do
             curl -i "https://purge.jsdelivr.net/gh/${{ github.repository }}@sing-box-ruleset/${file}"
           done
-
-      - name: Delete old workflow runs
-        uses: Mattraks/delete-workflow-runs@v2
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          repository: ${{ github.repository }}
-          retain_days: 3
-          keep_minimum_runs: 1

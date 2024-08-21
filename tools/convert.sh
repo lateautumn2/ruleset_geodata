@@ -34,7 +34,7 @@ for ((i = 0; i < ${#list[@]}; i++)); do
 	if [ -n "$(cat ./rules/${list[i]}/${list[i]}.yaml | grep 'IP-CIDR')" ]; then
 		cat ./rules/${list[i]}/${list[i]}.yaml | grep 'IP-CIDR' | sed -e 's/^IP-CIDR,//' -e 's/^IP-CIDR6,//' > ${list[i]}/ipcidr.json
 	fi
-	# 转换成 .json 格式
+	# 转成 .json 格式
 	# android package
 	if [ -f "${list[i]}/package.json" ]; then
 		sed -i 's/.*/        "&",/' ${list[i]}/package.json
@@ -80,7 +80,7 @@ for ((i = 0; i < ${#list[@]}; i++)); do
 	# 合并文件
 	if [ -f "${list[i]}/package.json" -a -f "${list[i]}/process.json" ]; then
 		mv -f ${list[i]}/package.json ${list[i]}.json
-		sed -i '$ s/,$/\n    },\n    {/' ${list[i]}.json
+		sed -i '$ s/,$/\n    },\n    {/g' ${list[i]}.json
 		cat ${list[i]}/process.json >> ${list[i]}.json
 		rm -f ${list[i]}/process.json
 	elif [ -f "${list[i]}/package.json" ]; then
@@ -90,18 +90,16 @@ for ((i = 0; i < ${#list[@]}; i++)); do
 	fi
 
 	if [ "$(ls ${list[i]})" = "" ]; then
-		sed -i '1s/^/{\n  "version": 1,\n  "rules": [\n    {\n/' ${list[i]}.json
+		sed -i '1s/^/{\n  "version": 1,\n  "rules": [\n    {\n/g' ${list[i]}.json
 	elif [ -f "${list[i]}.json" ]; then
-		sed -i '1s/^/{\n  "version": 1,\n  "rules": [\n    {\n/' ${list[i]}.json
-		sed -i '$ s/,$/\n    },\n    {/' ${list[i]}.json
+		sed -i '1s/^/{\n  "version": 1,\n  "rules": [\n    {\n/g' ${list[i]}.json
+		sed -i '$ s/,$/\n    },\n    {/g' ${list[i]}.json
 		cat ${list[i]}/* >> ${list[i]}.json
 	else
 		cat ${list[i]}/* >> ${list[i]}.json
-		sed -i '1s/^/{\n  "version": 1,\n  "rules": [\n    {\n/' ${list[i]}.json
+		sed -i '1s/^/{\n  "version": 1,\n  "rules": [\n    {\n/g' ${list[i]}.json
 	fi
-	sed -i '$ s/,$/\n    }\n  ]\n}/' ${list[i]}.json
+	sed -i '$ s/,$/\n    }\n  ]\n}/g' ${list[i]}.json
 	rm -rf ${list[i]}
-
- 	# 编译成 .srs 格式
 	./sing-box rule-set compile ${list[i]}.json -o ${list[i]}.srs
 done
