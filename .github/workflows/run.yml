@@ -124,10 +124,10 @@ jobs:
           # Generate `clash` rule-set (yaml)
           for ((i = 0; i < 17; i++)); do
             echo 'payload:' > "./clash-ruleset/${domains[i]}.yaml"
-            curl -sSL "${domains_download_url}/${domains[i]}.list" | grep -e 'DOMAIN' | sed 's/^/  - /' >> "./clash-ruleset/${domains[i]}.yaml"
+            curl -sSL "${domains_download_url}/${domains[i]}.list" | grep -E 'DOMAIN,|DOMAIN-SUFFIX,|DOMAIN-KEYWORD' | sed 's/^/  - /' >> "./clash-ruleset/${domains[i]}.yaml"
           done
           echo 'payload:' > "./clash-ruleset/fakeip-filter.yaml"
-          curl -sSL "${domains_download_url}/fakeip-filter.list" | grep -e 'DOMAIN' | sed 's/^/  - /' >> ./clash-ruleset/fakeip-filter.yaml
+          curl -sSL "${domains_download_url}/fakeip-filter.list" | grep -E 'DOMAIN,|DOMAIN-SUFFIX,|DOMAIN-KEYWORD' | sed 's/^/  - /' >> ./clash-ruleset/fakeip-filter.yaml
 
           for ((i = 0; i < 2; i++)); do
             echo 'payload:' > "./clash-ruleset/${archs[i]}.yaml"
@@ -146,9 +146,9 @@ jobs:
           
           # Generate `clash` rule-set (text)
           for ((i = 0; i < 17; i++)); do
-           curl -sSL "${domains_download_url}/${domains[i]}.list" | grep -e 'DOMAIN'  > "./clash-ruleset/${domains[i]}.list"
+           curl -sSL "${domains_download_url}/${domains[i]}.list" | grep -E 'DOMAIN,|DOMAIN-SUFFIX,|DOMAIN-KEYWORD'  > "./clash-ruleset/${domains[i]}.list"
           done
-          curl -sSL "${domains_download_url}/fakeip-filter.list" | grep -e 'DOMAIN' > ./clash-ruleset/fakeip-filter.list
+          curl -sSL "${domains_download_url}/fakeip-filter.list" | grep -E 'DOMAIN,|DOMAIN-SUFFIX,|DOMAIN-KEYWORD' > ./clash-ruleset/fakeip-filter.list
 
           for ((i = 0; i < 2; i++)); do
             curl -sSL "${domains_download_url}/${archs[i]}.list"  > "./clash-ruleset/${archs[i]}.list"
@@ -165,10 +165,10 @@ jobs:
           # Ready for generate `clash` rule-set (mrs)
           for ((i = 0; i < 17; i++)); do
             mkdir -p "./tools/domains/${domains[i]}/"
-            curl "${domains_download_url}/${domains[i]}.list" | grep -e 'DOMAIN' > "./tools/domains/${domains[i]}/${domains[i]}.list"
+            curl "${domains_download_url}/${domains[i]}.list" | grep -E 'DOMAIN,|DOMAIN-SUFFIX,|DOMAIN-KEYWORD' > "./tools/domains/${domains[i]}/${domains[i]}.list"
           done
           mkdir -p "./tools/domains/fakeip-filter/"
-          curl -sSL "${domains_download_url}/fakeip-filter.list" | grep -e 'DOMAIN' > ./tools/domains/fakeip-filter/fakeip-filter.list
+          curl -sSL "${domains_download_url}/fakeip-filter.list" | grep -E 'DOMAIN,|DOMAIN-SUFFIX,|DOMAIN-KEYWORD' > ./tools/domains/fakeip-filter/fakeip-filter.list
 
           for ((i = 0; i < 4; i++)); do
             mkdir -p "./tools/ips/${ips[i]}/"
@@ -182,7 +182,7 @@ jobs:
           # Ready for generate `sing-box` rule_set
           for ((i = 0; i < 17; i++)); do
             mkdir -p "./tools/rules/${domains[i]}/"
-            curl "${domains_download_url}/${domains[i]}.list" | grep -e 'DOMAIN' > "./tools/rules/${domains[i]}/${domains[i]}.yaml"
+            curl "${domains_download_url}/${domains[i]}.list" | grep -E 'DOMAIN,|DOMAIN-SUFFIX,|DOMAIN-KEYWORD' > "./tools/rules/${domains[i]}/${domains[i]}.yaml"
           done
           mkdir -p "./tools/rules/fakeip-filter/"
           curl "${domains_download_url}/fakeip-filter.list" > "./tools/rules/fakeip-filter/fakeip-filter.yaml"
