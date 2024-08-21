@@ -1,9 +1,15 @@
 **写在前面：**
 
+2024-08-21
+近日发现DustinWin佬更新了规则生成方式，似乎是影响了dns、router rule部分，更新后发现singbox1.10版本之下不再支持，具体影响为rule_set中的version参数，尝试修改convert.sh方法回退为version：1 发现，引入规则文件后singbox内核依旧闪退；由于本人只需要使用router rule，对dns部分并无依赖，于是本fork将所有代码回退到上一版本，并继续对router rule部分进行维护，dns部分由于代码已脱离，后续无任何更新。
+
+
   1. 此fork版在 DustinWin 的版本基础上修改了clash_ruleset的规则方式，丢弃了clash通配符方式，使用classical方式，兼容更多软件的引用。
-  2. 如果你有新的规则，请在addList中添加你想要添加的规则名字，并在template中新增你的规则文件，请注意格式（可见emby示例），配置完成后等待action完成后会自动生成文件。
+  2. 如果你有新的规则，请在addList中添加你想要添加的规则名字，并在template中新增你的规则文件，请注意格式（可见emby示例），并将workflows中的`add_download_url`修改为你的项目地址，配置完成后等待action完成后会自动生成文件。
 
 ~~**请注意！如果你想使用本仓库fork的clash_ruleset list,但又是一键复制（DustinWin）的模板文件，请将behavior类型从domian修改为classical，并将url换成本仓库clash_ruleset分支的url**~~
+
+<details>
 ### ① Clash 内核(已修改)
 - 注：以下只是节选，请酌情套用
 
@@ -253,6 +259,8 @@ rules:
   - RULE-SET,privateip,🔒 私有网络,no-resolve
   - RULE-SET,cnip,🇨🇳 直连 IP
 ```
+</details>
+<details>
 ### ① Sing-box 内核(已修改)
 - 注：以下只是节选，请酌情套用
 
@@ -471,6 +479,7 @@ rules:
 }
 
 ```
+</details>
 
 ---
 **特别说明：sing-box rule_set 规则集适配了 v1.9.0+ 版本内核新增的 `domain_suffix` 特性：`"domain_suffix": "baidu.com"`（可匹配 `baidu.com` 和 `baike.baidu.com`），与 mihomo 内核一致了。原特性仅有 `"domain_suffix": ".baidu.com"`（仅匹配 `baike.baidu.com` 而无法匹配 `baidu.com`），详见：[domain_suffix 不完整匹配二级域名](https://github.com/SagerNet/sing-box/issues/1189)。如需使用本规则集，请尽快升级内核！**
