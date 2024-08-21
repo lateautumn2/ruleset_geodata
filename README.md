@@ -1,6 +1,7 @@
 **写在前面：**
 
 2024-08-21
+
 近日发现DustinWin佬更新了规则生成方式，似乎是影响了dns、router rule部分，更新后发现singbox1.10版本之下不再支持，具体影响为rule_set中的version参数，尝试修改convert.sh方法回退为version：1 发现，引入规则文件后singbox内核依旧闪退；由于本人只需要使用router rule，对dns部分并无依赖，于是本fork将所有代码回退到上一版本，并继续对router rule部分进行维护，dns部分由于代码已脱离，后续无任何更新。
 
 
@@ -10,7 +11,7 @@
 ~~**请注意！如果你想使用本仓库fork的clash_ruleset list,但又是一键复制（DustinWin）的模板文件，请将behavior类型从domian修改为classical，并将url换成本仓库clash_ruleset分支的url**~~
 
 <details>
-### ① Clash 内核(已修改)
+<summary> ① Clash 内核(已修改)</summary>
 - 注：以下只是节选，请酌情套用
 
 ```
@@ -261,7 +262,7 @@ rules:
 ```
 </details>
 <details>
-### ① Sing-box 内核(已修改)
+<summary> ① Sing-box 内核(已修改)</summary>
 - 注：以下只是节选，请酌情套用
 
 ```
