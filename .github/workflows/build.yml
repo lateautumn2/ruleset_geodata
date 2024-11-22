@@ -91,10 +91,26 @@ jobs:
       - name: Get geoip relative files
         run: |
           mkdir -p ./clash/ ./sing-box/
-          mv -f ./geoip/clash/*.mmdb ./clash/
-          mv -f ./geoip/clash/* ./community/
-          mv -f ./geoip/sing-box/* ./community/
-          rm -rf ./geoip*
+          # Download Clash geoip files (.mmdb)
+          clash_mmdb=($(curl -sSL https://api.github.com/repos/DustinWin/geoip/releases | grep '"browser_download_url"' | grep '.mmdb' | awk -F'"' '{print $4}'))
+          count_clash_mmdb=${#clash_mmdb[@]}
+          for ((i = 0; i < count_clash_mmdb; i++)); do
+            wget -P ./clash/ "${clash_mmdb[i]}"
+          done
+
+          # Download Clash other geoip files (except .mmdb)
+          clash_others=($(curl -sSL https://api.github.com/repos/DustinWin/geoip/releases | grep '"browser_download_url"' | grep '/clash/' | grep -v '.mmdb' | awk -F'"' '{print $4}'))
+          count_clash_others=${#clash_others[@]}
+          for ((i = 0; i < count_clash_others; i++)); do
+            wget -P ./community/ "${clash_others[i]}"
+          done
+
+          # Download sing-box all geoip files
+          singbox_all=($(curl -sSL https://api.github.com/repos/DustinWin/geoip/releases | grep '"browser_download_url"' | grep '/sing-box/' | awk -F'"' '{print $4}'))
+          count_singbox_all=${#singbox_all[@]}
+          for ((i = 0; i < count_singbox_all; i++)); do
+            wget -P ./community/ "${singbox_all[i]}"
+          done
 
       - name: Move `clash` and `sing-box` geodata files
         run: |
