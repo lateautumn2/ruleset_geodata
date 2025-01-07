@@ -32,20 +32,6 @@ jobs:
           repository: v2fly/domain-list-community
           path: community
 
-      - name: Checkout DustinWin/geoip
-        uses: actions/checkout@v4
-        with:
-          repository: DustinWin/geoip
-          ref: clash
-          path: geoip/clash
-
-      - name: Checkout DustinWin/geoip
-        uses: actions/checkout@v4
-        with:
-          repository: DustinWin/geoip
-          ref: sing-box
-          path: geoip/sing-box
-
       - name: Setup Go
         uses: actions/setup-go@v5
         with:
